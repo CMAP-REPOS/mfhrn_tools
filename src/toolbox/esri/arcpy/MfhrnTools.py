@@ -15,35 +15,38 @@ if TYPE_CHECKING:
 
 # Tools
 @gptooldoc('CreateBusLayers_MfhrnTools', None)
-def CreateBusLayers(Mhn_Gdb_Path=None, Scenario_Years=None,) -> Result:
-    """CreateBusLayers_MfhrnTools(Mhn_Gdb_Path, Scenario_Years;Scenario_Years...)
+def CreateBusLayers(Mhn_Gdb_Path=None, Scenario_Years=None, Output_Dir=None,) -> Result:
+    """CreateBusLayers_MfhrnTools(Mhn_Gdb_Path, Scenario_Years;Scenario_Years..., Output_Dir)
 
      INPUTS:
       Mhn_Gdb_Path (Workspace):
           MHN GeoDatabase
       Scenario_Years (Long):
-          Scenario Years"""
+          Scenario Years
+      Output_Dir (Folder):
+          Output folder"""
     from arcpy.geoprocessing._base import gp, gp_fixargs
     from arcpy.arcobjects.arcobjectconversion import convertArcObjectToPythonObject
     try:
-        retval = convertArcObjectToPythonObject(gp.CreateBusLayers_MfhrnTools(*gp_fixargs((Mhn_Gdb_Path, Scenario_Years), True)))
+        retval = convertArcObjectToPythonObject(gp.CreateBusLayers_MfhrnTools(*gp_fixargs((Mhn_Gdb_Path, Scenario_Years, Output_Dir), True)))
         return retval
     except Exception as e:
         raise e
 
 @gptooldoc('ExportFutureHighwayNetwork_MfhrnTools', None)
-def ExportFutureHighwayNetwork(Mhn_Gdb_Path=None, Years_To_Export=None,) -> Result:
-    """ExportFutureHighwayNetwork_MfhrnTools(Mhn_Gdb_Path, Years_To_Export;Years_To_Export...)
+def ExportFutureHighwayNetwork(Mhn_Gdb_Path=None, Years_To_Export=None, Output_Dir_Path=None,) -> Result:
+    """ExportFutureHighwayNetwork_MfhrnTools(Mhn_Gdb_Path, Years_To_Export;Years_To_Export..., Output_Dir_Path)
 
      INPUTS:
       Mhn_Gdb_Path (Workspace):
-          MHN GeoDatabase
+          Master Highway Network (MHN) GeoDatabase
       Years_To_Export (String):
-          Years to export"""
+          Export Years
+      Output_Dir_Path (Folder)"""
     from arcpy.geoprocessing._base import gp, gp_fixargs
     from arcpy.arcobjects.arcobjectconversion import convertArcObjectToPythonObject
     try:
-        retval = convertArcObjectToPythonObject(gp.ExportFutureHighwayNetwork_MfhrnTools(*gp_fixargs((Mhn_Gdb_Path, Years_To_Export), True)))
+        retval = convertArcObjectToPythonObject(gp.ExportFutureHighwayNetwork_MfhrnTools(*gp_fixargs((Mhn_Gdb_Path, Years_To_Export, Output_Dir_Path), True)))
         return retval
     except Exception as e:
         raise e

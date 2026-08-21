@@ -12,6 +12,7 @@ The below contains an automatically updated log of all
 git commits with their hash and time/date.
 
 !commit-log!
+(0979150) 2026-08-21 | Fixed weird CRLF/LF thing [Aaron Rumph]
 (cdbbceb) 2026-08-21 | Started on lib code for MfhrnTools toolbox [Aaron Rumph]
 (8e7728a) 2026-08-21 | Automatically generated toolbox files [Aaron Rumph]
 (77f8e69) 2026-08-21 | Moved MfhrnTools.pyt to sensible location [Aaron Rumph]

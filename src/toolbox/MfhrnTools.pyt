@@ -21,9 +21,19 @@ Notes:
 # SECTION: External dependencies
 import os
 import arcpy
+import sys
 
 # SECTION: Internal dependencies
-from ..params import _debug_params, parse_years
+
+# NOTE: AR: The below is a really stupid work around
+# needed to be able to use relative imports for Python
+# toolboxes in ArcGIS
+_toolbox_dir = os.path.dirname(__file__)
+_package_root = os.path.abspath(os.path.join(_toolbox_dir, ".."))
+if _package_root not in sys.path:
+    sys.path.insert(0, _package_root)
+
+from params import _debug_params, parse_years
 
 # SECTION: Functions:
 
