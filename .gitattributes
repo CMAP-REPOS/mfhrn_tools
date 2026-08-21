@@ -1,0 +1,6 @@
+# ArcGIS is very picky and for some reason
+# CRLF breaks importing files, so need to change files
+# to LF instead?
+*.pyt text eol=lf
+*.py text eol=lf
+*.xml text eol=lf

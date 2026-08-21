@@ -23,9 +23,9 @@ import os
 import arcpy
 
 # SECTION: Internal dependencies
-from src.params import _debug_params, parse_years
+from ..params import _debug_params, parse_years
 
-# SECTION: Functions
+# SECTION: Functions:
 
 
 # SECTION: Classes

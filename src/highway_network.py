@@ -46,15 +46,6 @@ class HighwayNetwork:
         self.bus_current_fc = os.path.join(f"{self.hwynet_fc}", "bus_current")
         self.bus_future_fc = os.path.join(f"{self.hwynet_fc}", "bus_future")
 
-        # TODO: Ask Tim about whether these tables/fcs are necessary or not
-        self.sensor_points_fc = os.path.join(f"{self.mhn_gdb_path}", "sensor_points")
-        self.sensor_roads_intersect_fc = os.path.join(
-            f"{self.mhn_gdb_path}", "sensor_roads_intersect"
-        )
-        self.z_bus_future_itin_2024 = os.path.join(
-            f"{self.mhn_gdb_path}", "z_bus_future_itin_2024"
-        )
-
         # Tables
         self.hwyproj_coding_table = os.path.join(
             f"{self.mhn_gdb_path}", "hwyproj_coding"

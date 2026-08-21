@@ -18,4 +18,7 @@ import os
 
 # SECTION: Functions
 
+
 # SECTION: Main entry point
+def main():
+    pass
