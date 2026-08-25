@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+PROJECT_LOG="$HOME/Repos/mfhrn_tools/notes/aaron/project-log.md"
+
+echo "Running post-commit hook"
+
+# Grab the git log (oneline format)
+GIT_LOG="$(git log --pretty=format:"(%h) %ad | %s [%an]" --date=short)"
+
+# Build the replacement block
+# We wrap it exactly as: !commit-log! ... !commit-log!
+REPLACEMENT_BLOCK="!commit-log!
+$GIT_LOG
+!commit-log!"
+
+echo "Current project commit log:"
+rg -NI --multiline --multiline-dotall '!commit-log.*!commit-log!' \
+    | head -n -1 | tail -n +2
+
+echo "Updating git log in $PROJECT_LOG"
+
+# Replace the commit log block using awk
+awk -v repl="$GIT_LOG" '
+BEGIN {
+    # Build the full replacement block inside AWK
+    block = "!commit-log!\n" repl "\n!commit-log!"
+}
+
+# When we encounter the first !commit-log!, print the block and start skipping
+$0 ~ /!commit-log!/ && !inblock {
+    print block
+    inblock=1
+    next
+}
+
+# Skip everything until we reach the closing !commit-log!
+inblock && $0 ~ /!commit-log!/ {
+    inblock=0
+    next
+}
+
+# Normal lines
+!inblock {
+    print
+}
+' "$PROJECT_LOG" > "$PROJECT_LOG.tmp"
+
+# Replace original file
+mv "$PROJECT_LOG.tmp" "$PROJECT_LOG"
+
+echo "sed (awk) succeeded, new log:"
+rg -NI --multiline --multiline-dotall '!commit-log.*!commit-log!' \
+    | head -n -1 | tail -n +2
+
+echo "Done!"
