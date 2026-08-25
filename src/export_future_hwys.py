@@ -16,7 +16,26 @@ import os
 
 # SECTION: Constants
 
+
 # SECTION: Functions
+def export_future_highways(
+    mhn_gdb_path: str, years: list[int], output_dir_path: str
+) -> None:
+    """
+    The main 'ExportFutureHighwayNetwork'. Exports a Master Highway Network
+    GeoDatabase into the necessary files to be used with EMME.
+
+    Parameters
+    ----------
+    mhn_gdb_path : str
+        The path to the Master Highway Network GeoDatabase to export features from.
+    years : list[str]
+        The list of years to export features for. Will be used to select based on project
+        completion date
+    output_dir_path : str
+        The directory in which to create the EMME files.
+    """
+    pass
 
 
 # SECTION: Main entry point

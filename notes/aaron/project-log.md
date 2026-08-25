@@ -12,6 +12,8 @@ The below contains an automatically updated log of all
 git commits with their hash and time/date.
 
 !commit-log!
+(6daa9d2) 2026-08-25 | Added post-commit script I'm using under a scripts dir [Aaron Rumph]
+(8a06202) 2026-08-21 | Fixed ArcPy toolbox import problem [Aaron Rumph]
 (0979150) 2026-08-21 | Fixed weird CRLF/LF thing [Aaron Rumph]
 (cdbbceb) 2026-08-21 | Started on lib code for MfhrnTools toolbox [Aaron Rumph]
 (8e7728a) 2026-08-21 | Automatically generated toolbox files [Aaron Rumph]
