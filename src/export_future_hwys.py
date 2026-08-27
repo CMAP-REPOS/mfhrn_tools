@@ -36,19 +36,23 @@ def export_future_highways(
     output_dir_path : str
         The directory in which to create the EMME files.
     """
-    master_highway_network = HighwayNetwork(mhn_gdb_path=mhn_gdb_path)
-
-    # NOTE: Cindy has a `create_base_hwy()` method here. From what I can tell
-    # all that does is create a copy of the input MHN
-
-    master_highway_network.check_feature_classes()
-
-    # main loop
-    for year in years:
-        # TODO: impl export_year() and output_dir writing here!
-        master_highway_network.export_year(year)
+    mhn = HighwayNetwork(mhn_gdb_path=mhn_gdb_path)
+    mhn.create_base_hwy(output_dir=output_dir_path)
+    mhn.check_hwyproj_coding_table(output_dir=output_dir_path)
+    mhn.check_hwy_fcs()
+    mhn.build_future_hwys(years=years, output_dir=output_dir_path)
 
 
 # SECTION: Main entry point
 def main():
     pass
+
+
+if __name__ == "__main__":
+    test_mhn_path = r"tests\input\mhns\base-test-mhn.gdb"
+    test_output_dir = "tests/output/test-1"
+    test_years = [2019, 2026, 2030, 2035, 2040, 2045, 2050]
+
+    export_future_highways(
+        mhn_gdb_path=test_mhn_path, output_dir_path=test_output_dir, years=test_years
+    )

@@ -10,7 +10,7 @@ output/
 .vs_code/
 
 # input test files are too large to be pushed to github :(
-tests/inputs/
+tests/input/
 # output files too
-tests/outputs/
+tests/output/
 

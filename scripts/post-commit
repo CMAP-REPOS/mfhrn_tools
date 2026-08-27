@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Quick little script I wrote just to get a copy of my git log in my 
+# project log after every commit. Should be installed to .git/hooks/post-commit
+
 PROJECT_LOG="$HOME/Repos/mfhrn_tools/notes/aaron/project-log.md"
 
 echo "Running post-commit hook"
