@@ -34,5 +34,12 @@ def _spatial_df_from_table(fc_or_table: str) -> pd.DataFrame:
     -------
     A pd.DataFrame corresponding to the table or feature class provided.
     """
-    fields = [field.name for field in arcpy.ListFields]
-    np_arrar = arcpy.da.TableToNumPyArray(fc_or_table, fields)
+    # oid_field_name = arcpy.Describe(fc_or_table).OIDFieldName
+    # fields = [field.name for field in arcpy.ListFields(fc_or_table)]
+    # data = [row for row in arcpy.SearchCursor(fc_or_table, fields)]
+
+    # fc_dataframe = pd.DataFrame(data, columns=fields)
+    # fc_dataframe.set_index(oid_field_name, drop=True)
+
+    # return fc_dataframe
+    return pd.DataFrame.spatial.from_featureclass(fc_or_table)

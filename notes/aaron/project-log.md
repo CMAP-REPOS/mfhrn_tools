@@ -12,6 +12,7 @@ The below contains an automatically updated log of all
 git commits with their hash and time/date.
 
 !commit-log!
+(a29df3c) 2026-08-25 | Added main function for ExportFutureHighwayNetwork tool [Aaron Rumph]
 (6daa9d2) 2026-08-25 | Added post-commit script I'm using under a scripts dir [Aaron Rumph]
 (8a06202) 2026-08-21 | Fixed ArcPy toolbox import problem [Aaron Rumph]
 (0979150) 2026-08-21 | Fixed weird CRLF/LF thing [Aaron Rumph]

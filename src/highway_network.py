@@ -13,10 +13,15 @@ Notes:
 import os
 import pandas as pd
 
+pd.set_option("display.max_columns", None)
+
+from pprint import pprint
+
 # for fc -> df conversion
 from arcgis.features import GeoAccessor, GeoSeriesAccessor
 
 # SECTION: Internal dependencies
+from datatypes import _spatial_df_from_table
 
 # SECTION: Constants
 
@@ -91,5 +96,62 @@ class HighwayNetwork:
             f"{self.mhn_gdb_path}", "rel_nodes_to_parknride"
         )
 
+        self.mhn_baselinks_fc_df = _spatial_df_from_table(self.mhn_baselinks_fc)
+
+        self.hwynet_fc_df = _spatial_df_from_table(self.hwynet_fc)
+        self.hwynet_arc_fc_df = _spatial_df_from_table(self.hwynet_arc_fc)
+        self.hwynet_node_fc_df = _spatial_df_from_table(self.hwynet_node_fc)
+        self.hwyproj_fc_df = _spatial_df_from_table(self.hwyproj_fc)
+
+        self.bus_base_fc_df = _spatial_df_from_table(self.bus_base_fc)
+        self.bus_current_fc_df = _spatial_df_from_table(self.bus_current_fc)
+        self.bus_future_fc_df = _spatial_df_from_table(self.bus_future_fc)
+
+    def check_feature_classes(self):
+        """
+        Checks that feature classes meet all the invariants
+        for a well formed Master Highway Network.
+        """
+        # TODO: Check feature classes
+
+        # NOTE: AR: I have intentionally made this method a pretty
+        # shallow wrapper that just calls other methods that do the
+        # actual validation that a given feature class/table is
+        # well formed. This keeps the code more modular, and easier
+        # to change how individual fcs are checked.
+
+        self.check_hwylink_feature_class()
+        self.check_hwynode_feature_class()
+        self.check_hwyproj_feature_class()
+
+    def check_hwynode_feature_class():
+        # TODO: check hwynode feature class/table
+        pass
+
+    def check_hwylink_feature_class():
+        # TODO: Check hwylink feature class/tabel
+        pass
+
+    def check_hwyproj_feature_class():
+        # TODO: Check hwyproj feature class/table
+        pass
+
+    def create_gdb_for_year(year: int, output_dir: str) -> None:
+        pass
+
 
 # SECTION: Functions
+
+# SECTION: Main
+if __name__ == "__main__":
+    # NOTE: AR: this is an area I'm just using for quick
+    # print debugging
+    local_mhn_path = r"C:\Users\arumph\MasterHighway\mhn_c26q2.gdb"
+    mhn = HighwayNetwork(mhn_gdb_path=local_mhn_path)
+
+    # print attrs of MHN
+    pprint(vars(mhn))
+
+    df_props = [df for df in vars(mhn).keys() if str(df).endswith("df")]
+    for df in df_props:
+        print(df_props)
