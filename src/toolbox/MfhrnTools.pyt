@@ -30,6 +30,7 @@ from export_future_highway_network import export_future_highways
 from generate_emme_highway_files import EmmeHighwayNetwork
 from generate_transit_files import EmmeTransitNetwork
 from params import parse_scenario_years, parse_years
+from import_highway_project_coding import import_highway_project_coding
 
 
 # SECTION: Classes
@@ -49,6 +50,7 @@ class Toolbox:
             GenerateEmmeHighwayFiles,
             CreateBusLayers,
             GenerateTransitFiles,
+            ImportHighwayProjectCoding,
         ]
 
 
@@ -136,8 +138,7 @@ class GenerateEmmeHighwayFiles:
         """
         self.label = "Generate EMME Highway Files"
         self.description = (
-            "Generate EMME highway files from the combined highway "
-            "network geodatabase."
+            "Generate EMME highway files from the combined highway network geodatabase."
         )
         self.canRunInBackground = True
 
@@ -303,8 +304,7 @@ class GenerateTransitFiles:
         """
         self.label = "Generate Transit Files"
         self.description = (
-            "Generate EMME transit files from the bus-network "
-            "geodatabases."
+            "Generate EMME transit files from the bus-network geodatabases."
         )
         self.canRunInBackground = True
 
@@ -366,3 +366,77 @@ class GenerateTransitFiles:
             output_folder=output_folder,
         )
         network.generate_transit_files()
+
+
+class ImportHighwayProjectCoding:
+    """
+    Takes an excel table with highway project
+    coding information, and upddates the MHN
+    to match.
+    """
+
+    def __init__(self):
+        """
+        Tool definition and metadata.
+        """
+        self.label = "Import Highway Project Coding"
+        self.description = (
+            "Import a table with project coding"
+            " information, and update the MHN accordingly"
+        )
+        self.canRunInBackground = True
+
+    def getParameterInfo(self):
+        """
+        Parameter definitions for the tool.
+        """
+
+        # Param 0: GDB containing the full MHN
+        param_mhn_gdb_path = arcpy.Parameter(
+            displayName="Master Highway Network (MHN) Geodatabase",
+            name="Mhn_Gdb_Path",
+            datatype="DEWorkspace",
+            parameterType="Required",
+            direction="Input",
+        )
+
+        # Param 1: Table (must be DETable) to import project coding from
+        param_coding_table_path = arcpy.Parameter(
+            displayName="Input Project Coding Table",
+            name="Coding_Table_Path",
+            datatype="DETable",
+            parameterType="Required",
+            direction="Input",
+            multiValue=True,
+        )
+
+        # Param 2: folder for the year GDBs and MHN_all.gdb
+        param_output_folder = arcpy.Parameter(
+            displayName="Output Folder",
+            name="Output_Folder",
+            datatype="DEFolder",
+            parameterType="Required",
+            direction="Input",
+        )
+
+        params = [
+            param_mhn_gdb_path,
+            param_coding_table_path,
+            param_output_folder,
+        ]
+        return params
+
+    def execute(self, parameters, messages):
+        """
+        Run the Import Highway Project Coding tool
+        """
+        mhn_gdb_path = parameters[0].valueAsText
+        coding_table_path = parameters[1].valueAsText
+        output_folder = parameters[2].valueAsText
+
+        messages.addMessage("Importing Highway Project Coding")
+        import_highway_project_coding(
+            mhn_gdb_path=mhn_gdb_path,
+            coding_table_path=coding_table_path,
+            output_dir_path=output_folder,
+        )

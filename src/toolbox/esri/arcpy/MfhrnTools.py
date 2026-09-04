@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r""""""
 from __future__ import annotations
-__all__ = ['CreateBusLayers', 'ExportFutureHighwayNetwork', 'GenerateEmmeHighwayFiles', 'GenerateTransitFiles']
+__all__ = ['CreateBusLayers', 'ExportFutureHighwayNetwork', 'GenerateEmmeHighwayFiles', 'GenerateTransitFiles', 'ImportHighwayProjectCoding']
 __alias__ = 'MfhrnTools'
 from arcpy.geoprocessing._base import gptooldoc, gp, gp_fixargs
 from arcpy.arcobjects.arcobjectconversion import convertArcObjectToPythonObject
@@ -88,6 +88,25 @@ def GenerateTransitFiles(Bus_Network_Folder=None, Scenario_Years=None, Output_Fo
     from arcpy.arcobjects.arcobjectconversion import convertArcObjectToPythonObject
     try:
         retval = convertArcObjectToPythonObject(gp.GenerateTransitFiles_MfhrnTools(*gp_fixargs((Bus_Network_Folder, Scenario_Years, Output_Folder), True)))
+        return retval
+    except Exception as e:
+        raise e
+
+@gptooldoc('ImportHighwayProjectCoding_MfhrnTools', None)
+def ImportHighwayProjectCoding(Mhn_Gdb_Path=None, Coding_Table_Path=None, Output_Folder=None,) -> Result:
+    """ImportHighwayProjectCoding_MfhrnTools(Mhn_Gdb_Path, Coding_Table_Path;Coding_Table_Path..., Output_Folder)
+
+     INPUTS:
+      Mhn_Gdb_Path (Workspace):
+          Master Highway Network (MHN) Geodatabase
+      Coding_Table_Path (Table):
+          Input Project Coding Table
+      Output_Folder (Folder):
+          Output Folder"""
+    from arcpy.geoprocessing._base import gp, gp_fixargs
+    from arcpy.arcobjects.arcobjectconversion import convertArcObjectToPythonObject
+    try:
+        retval = convertArcObjectToPythonObject(gp.ImportHighwayProjectCoding_MfhrnTools(*gp_fixargs((Mhn_Gdb_Path, Coding_Table_Path, Output_Folder), True)))
         return retval
     except Exception as e:
         raise e
