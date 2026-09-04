@@ -4,42 +4,36 @@ Python toolbox for ArcGIS containing MFHRN tools.
 
 """
 Author: Aaron Rumph
-Updated: 08/19/2026
+Updated: 09/01/2026
 Notes:
-    I am basing the toolbox code partially off of Esri's
-    'LargeNetworkAnalysisTools' toolbox. Which is available under an
-    Apache 2.0 License. I am mostly using Cindy's code contained within
-    "scripts" dir as the basis for the actual tools themselves, using
-    the 'LargeNetworkAnalysisTools' code for the template for writing
-    the toolbox in the correct format. You can view that repo at:
-    https://github.com/Esri/large-network-analysis-tools/tree/master.
-    If you see `(Source: Esri 2023)` that is code or documentation
-    attributed to Esri under the Apache 2.0 license in the
-    'LargeNetworkAnalysisTools' repo.
+    The tool classes below provide ArcGIS Pro interfaces for the travel
+    scripts adapted from `mfhrn_programs`.
 """
 
 # SECTION: External dependencies
 import os
-import arcpy
 import sys
+
+import arcpy
 
 # SECTION: Internal dependencies
 
-# NOTE: AR: The below is a really stupid work around
-# needed to be able to use relative imports for Python
-# toolboxes in ArcGIS
+# NOTE: AR: Python toolboxes are not imported as packages, so the src
+# directory has to be added to sys.path before importing the tool code.
 _toolbox_dir = os.path.dirname(__file__)
-_package_root = os.path.abspath(os.path.join(_toolbox_dir, ".."))
-if _package_root not in sys.path:
-    sys.path.insert(0, _package_root)
+_src_dir = os.path.abspath(os.path.join(_toolbox_dir, ".."))
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
-from params import _debug_params, parse_years
-
-# SECTION: Functions:
+from create_bus_layers import BusNetwork
+from export_future_highway_network import export_future_highways
+from generate_emme_highway_files import EmmeHighwayNetwork
+from generate_transit_files import EmmeTransitNetwork
+from params import parse_scenario_years, parse_years
 
 
 # SECTION: Classes
-class Toolbox(object):
+class Toolbox:
     """
     Tools for working with CMAP's Master Highway Network (MHN).
     """
@@ -50,8 +44,6 @@ class Toolbox(object):
         """
         self.label = "MFHRN Tools"
         self.alias = "MfhrnTools"
-
-        # TODO: once done with tool code, add tool class to list here
         self.tools = [
             ExportFutureHighwayNetwork,
             GenerateEmmeHighwayFiles,
@@ -60,17 +52,10 @@ class Toolbox(object):
         ]
 
 
-# NOTE: AR: Each tool needs to be represented as it's own class
-# with the following methods:
-# [getParameterInfo, isLicensed, updateParameters, updateMessages, execute]
-
-
-class ExportFutureHighwayNetwork(object):
+class ExportFutureHighwayNetwork:
     """
-    Creates new MHN GeoDatabases representing the state
-    of the highway network in all specified future years.
-
-    # TODO: ADD Documentation
+    Creates a MHN geodatabase for each specified network year and a
+    combined MHN_all geodatabase for the other travel tools.
     """
 
     def __init__(self):
@@ -80,7 +65,7 @@ class ExportFutureHighwayNetwork(object):
         self.label = "Export Future Highway Network"
         self.description = (
             "Export future highway network states into a new "
-            "GeoDatabase for each specified future year."
+            "geodatabase for each specified network year."
         )
         self.canRunInBackground = True
 
@@ -89,119 +74,26 @@ class ExportFutureHighwayNetwork(object):
         Parameter definitions for the tool.
         """
 
-        # NOTE: The params below are 0-indexed in comments to make
-        # it easier to find them when they're in an array
-
-        # Param 0: Handle to the GDB containing the full MHN
+        # Param 0: GDB containing the full MHN
         param_mhn_gdb_path = arcpy.Parameter(
-            displayName="Master Highway Network (MHN) GeoDatabase",
+            displayName="Master Highway Network (MHN) Geodatabase",
             name="Mhn_Gdb_Path",
             datatype="DEWorkspace",
             parameterType="Required",
             direction="Input",
         )
 
-        # Param 1: Which years to export a future highway network for
+        # Param 1: years to build highway networks for
         param_export_years = arcpy.Parameter(
-            displayName="Export Years",
+            displayName="Network Years",
             name="Years_To_Export",
-            datatype="GPString",
+            datatype="GPLong",
             parameterType="Required",
             direction="Input",
-            multiValue="True",
+            multiValue=True,
         )
 
-        # Param 2: The directory in which to create the MHN GDBs for each target year
-        param_output_dir_path = arcpy.Parameter(
-            displayName="",
-            name="Output_Dir_Path",
-            datatype="DEFolder",
-            parameterType="Required",
-            direction="Input",
-        )
-
-        # TODO: param_highway_projects_subset:
-        # Add parameter for subsetting which projects to export when using
-        # this tool. Should `parameterType` be "DETable"?
-
-        # Returning params (must be in ordered array)
-        params = [param_mhn_gdb_path, param_export_years, param_output_dir_path]
-
-        return params
-
-    def isLicensed(self):
-        """Whether or not the tool is licensed to execute."""
-        return True
-
-    def updateParameters(self, parameters):
-        """
-        Modify the values and properties of parameters before
-        internal validation is performed. This method is called whenever
-        a parameter has been changed.
-        """
-        # TODO: Figure out updateParameters method
-        pass
-
-    def updateMessages(self, new_msg):
-        """
-        Modify the messages created by internal validation for each tool
-        parameter. This method is called after internal validation.
-        (Source: Esri)
-        """
-        # TODO: Figure out updateMessages method
-        pass
-
-    def execute(self, parameters, messages):
-        """
-        Where the tool actually gets executed.
-        """
-        for param in parameters:
-            _debug_params(param, messages)
-
-        # parsing input years as may be multiple (years is 1st param)
-        input_years: list[int] = parse_years(parameters[1])
-
-        return
-
-
-class GenerateEmmeHighwayFiles(object):
-    """
-    Generates highway files for use in EMME based on the
-    input MHN gdb.
-
-    # TODO: Add documentation
-    """
-
-    def __init__(self):
-        """
-        Tool definition and metadata.
-        """
-        self.label = "Generate Emme Highway Files"
-        self.description = (
-            "Generates EMME highway files based on the input MHN GeoDatabase"
-        )
-        self.canRunInBackground = True
-
-    def getParameterInfo(self):
-        """
-        Parameter definitions for the tool.
-        """
-
-        # NOTE: The params below are 0-indexed in comments to make
-        # it easier to find them when they're in an array
-
-        # Param 0: Handle to the GDB containing the MHN to export
-        # to EMME highway files
-        param_mhn_gdb_path = arcpy.Parameter(
-            displayName="MHN GeoDatabase",
-            name="Mhn_Gdb_Path",
-            datatype="DEWorkspace",
-            parameterType="Required",
-            direction="Input",
-        )
-
-        # Param 1: Output directory to create EMME files/dir of
-        # EMME files in
+        # Param 2: folder for the year GDBs and MHN_all.gdb
         param_output_folder = arcpy.Parameter(
             displayName="Output Folder",
             name="Output_Folder",
@@ -210,71 +102,109 @@ class GenerateEmmeHighwayFiles(object):
             direction="Input",
         )
 
-        # Param 2: Base scenario year
-        param_base_scenario_year = arcpy.Parameter(
-            displayName="Base scenario year",
-            name="Base_Scenario_Year",
-            datatype="GPLong",
-            parameterType="Required",
-            direction="Input",
-        )
-
-        # Param 3: Future scenario years (multiValue for multiple)
-        param_future_scenario_years = arcpy.Parameter(
-            displayName="Future scenario year(s)",
-            name="Future_Scenario_Years",
-            datatype="GPLong",
-            parameterType="Required",
-            direction="Input",
-            multiValue="True",
-        )
-
-        # Returning params (must be in ordered array)
         params = [
             param_mhn_gdb_path,
+            param_export_years,
             param_output_folder,
-            param_base_scenario_year,
-            param_future_scenario_years,
         ]
-
         return params
-
-    def isLicensed(self):
-        """Whether or not the tool is licensed to execute."""
-        return True
-
-    def updateParameters(self, parameters):
-        """
-        Modify the values and properties of parameters before
-        internal validation is performed. This method is called whenever
-        a parameter has been changed.
-        """
-        # TODO: Figure out updateParameters method
-        pass
-
-    def updateMessages(self):
-        """
-        Modify the messages created by internal validation for each tool
-        parameter. This method is called after internal validation.
-        (Source: Esri)
-        """
-        # TODO: Figure out updateMessages method
-        pass
 
     def execute(self, parameters, messages):
         """
-        Where the tool actually gets executed.
+        Run the Export Future Highway Network tool.
         """
-        # TODO: implement execute method
-        pass
+        mhn_gdb_path = parameters[0].valueAsText
+        export_years = parse_years(parameters[1])
+        output_folder = parameters[2].valueAsText
+
+        messages.addMessage("Exporting future highway networks...")
+        export_future_highways(
+            mhn_gdb_path=mhn_gdb_path,
+            years=export_years,
+            output_dir_path=output_folder,
+        )
 
 
-class CreateBusLayers(object):
+class GenerateEmmeHighwayFiles:
     """
-    Creates GeoDatabases representing the bus network for all scenario years.
-    Each Geodatabase contains a seperate layer for each TOD.
+    Generates EMME highway files from MHN_all.gdb.
+    """
 
-    # TODO: ADD Documentation
+    def __init__(self):
+        """
+        Tool definition and metadata.
+        """
+        self.label = "Generate EMME Highway Files"
+        self.description = (
+            "Generate EMME highway files from the combined highway "
+            "network geodatabase."
+        )
+        self.canRunInBackground = True
+
+    def getParameterInfo(self):
+        """
+        Parameter definitions for the tool.
+        """
+
+        # Param 0: combined GDB made by Export Future Highway Network
+        param_mhn_all_gdb_path = arcpy.Parameter(
+            displayName="Combined Highway Network Geodatabase (MHN_all.gdb)",
+            name="Mhn_All_Gdb_Path",
+            datatype="DEWorkspace",
+            parameterType="Required",
+            direction="Input",
+        )
+
+        # Param 1: network year and EMME scenario lookup
+        param_scenario_years = arcpy.Parameter(
+            displayName="Network Years and EMME Scenarios",
+            name="Scenario_Years",
+            datatype="GPValueTable",
+            parameterType="Required",
+            direction="Input",
+        )
+        param_scenario_years.columns = [
+            ["GPLong", "Network Year"],
+            ["GPLong", "EMME Scenario"],
+        ]
+
+        # Param 2: folder for the EMME highway files
+        param_output_folder = arcpy.Parameter(
+            displayName="Highway Output Folder",
+            name="Output_Folder",
+            datatype="DEFolder",
+            parameterType="Required",
+            direction="Input",
+        )
+
+        params = [
+            param_mhn_all_gdb_path,
+            param_scenario_years,
+            param_output_folder,
+        ]
+        return params
+
+    def execute(self, parameters, messages):
+        """
+        Run the Generate EMME Highway Files tool.
+        """
+        mhn_all_gdb_path = parameters[0].valueAsText
+        scenario_years = parse_scenario_years(parameters[1])
+        output_folder = parameters[2].valueAsText
+
+        messages.addMessage("Generating EMME highway files...")
+        network = EmmeHighwayNetwork(
+            mhn_all_gdb_path=mhn_all_gdb_path,
+            scenario_years=scenario_years,
+            output_folder=output_folder,
+        )
+        network.generate_hwy_files()
+
+
+class CreateBusLayers:
+    """
+    Creates a bus-network geodatabase for each EMME scenario. Each
+    geodatabase contains a feature dataset for each transit time of day.
     """
 
     def __init__(self):
@@ -283,8 +213,8 @@ class CreateBusLayers(object):
         """
         self.label = "Create Bus Layers"
         self.description = (
-            "Creates GeoDatabase for the bus network for all specified "
-            "scenario years, with seperate layers for each Time of Day"
+            "Collapse bus routes and create bus layers for each EMME "
+            "scenario and transit time of day."
         )
         self.canRunInBackground = True
 
@@ -293,77 +223,78 @@ class CreateBusLayers(object):
         Parameter definitions for the tool.
         """
 
-        # NOTE: The params below are 0-indexed in comments to make
-        # it easier to find them when they're in an array
-
-        # Param 0: Handle to the GDB containing the full MHN
+        # Param 0: GDB containing the full MHN and bus route data
         param_mhn_gdb_path = arcpy.Parameter(
-            displayName="MHN GeoDatabase",
+            displayName="Master Highway Network (MHN) Geodatabase",
             name="Mhn_Gdb_Path",
             datatype="DEWorkspace",
             parameterType="Required",
             direction="Input",
         )
 
-        # Param 1: Which years to export a bus years for
-        param_export_years = arcpy.Parameter(
-            displayName="Scenario Years",
-            name="Scenario_Years",
-            datatype="GPLong",
+        # Param 1: combined GDB made by Export Future Highway Network
+        param_mhn_all_gdb_path = arcpy.Parameter(
+            displayName="Combined Highway Network Geodatabase (MHN_all.gdb)",
+            name="Mhn_All_Gdb_Path",
+            datatype="DEWorkspace",
             parameterType="Required",
             direction="Input",
-            multiValue="True",
         )
 
-        # Param 2: The directory in which to create the GDB containging
-        # the bus layers (feature classes)
-        param_output_dir = arcpy.Parameter(
-            displayName="Output folder",
-            name="Output_Dir",
+        # Param 2: network year and EMME scenario lookup
+        param_scenario_years = arcpy.Parameter(
+            displayName="Network Years and EMME Scenarios",
+            name="Scenario_Years",
+            datatype="GPValueTable",
+            parameterType="Required",
+            direction="Input",
+        )
+        param_scenario_years.columns = [
+            ["GPLong", "Network Year"],
+            ["GPLong", "EMME Scenario"],
+        ]
+
+        # Param 3: folder for the bus-network geodatabases
+        param_output_folder = arcpy.Parameter(
+            displayName="Bus Network Output Folder",
+            name="Output_Folder",
             datatype="DEFolder",
             parameterType="Required",
             direction="Input",
         )
 
-        # Returning params (must be in ordered array)
-        params = [param_mhn_gdb_path, param_export_years, param_output_dir]
-
+        params = [
+            param_mhn_gdb_path,
+            param_mhn_all_gdb_path,
+            param_scenario_years,
+            param_output_folder,
+        ]
         return params
-
-    def isLicensed(self):
-        """Whether or not the tool is licensed to execute."""
-        return True
-
-    def updateParameters(self, parameters):
-        """
-        Modify the values and properties of parameters before
-        internal validation is performed. This method is called whenever
-        a parameter has been changed.
-        """
-        # TODO: Figure out updateParameters method
-        pass
-
-    def updateMessages(self):
-        """
-        Modify the messages created by internal validation for each tool
-        parameter. This method is called after internal validation.
-        (Source: Esri)
-        """
-        # TODO: Figure out updateMessages method
-        pass
 
     def execute(self, parameters, messages):
         """
-        Where the tool actually gets executed.
+        Run the Create Bus Layers tool.
         """
-        # TODO: implement execute method
-        pass
+        mhn_gdb_path = parameters[0].valueAsText
+        mhn_all_gdb_path = parameters[1].valueAsText
+        scenario_years = parse_scenario_years(parameters[2])
+        output_folder = parameters[3].valueAsText
+
+        messages.addMessage("Creating bus layers...")
+        network = BusNetwork(
+            mhn_gdb_path=mhn_gdb_path,
+            mhn_all_gdb_path=mhn_all_gdb_path,
+            scenario_years=scenario_years,
+            output_folder=output_folder,
+        )
+        network.create_bn_folder()
+        network.collapse_bus_routes()
+        network.create_bus_layers()
 
 
-class GenerateTransitFiles(object):
+class GenerateTransitFiles:
     """
-
-    # TODO: ADD Documentation
+    Generates EMME transit files from the bus-network geodatabases.
     """
 
     def __init__(self):
@@ -371,7 +302,10 @@ class GenerateTransitFiles(object):
         Tool definition and metadata.
         """
         self.label = "Generate Transit Files"
-        self.description = "Creates GeoDatabase for each specified future year."
+        self.description = (
+            "Generate EMME transit files from the bus-network "
+            "geodatabases."
+        )
         self.canRunInBackground = True
 
     def getParameterInfo(self):
@@ -379,60 +313,56 @@ class GenerateTransitFiles(object):
         Parameter definitions for the tool.
         """
 
-        # NOTE: The params below are 0-indexed in comments to make
-        # it easier to find them when they're in an array
-
-        # Param 0: Handle to the GDB containing the full MHN
-        param_mhn_gdb_path = arcpy.Parameter(
-            displayName="MHN GeoDatabase",
-            name="Mhn_Gdb_Path",
-            datatype="DEWorkspace",
+        # Param 0: folder made by Create Bus Layers
+        param_bus_network_folder = arcpy.Parameter(
+            displayName="Bus Network Folder",
+            name="Bus_Network_Folder",
+            datatype="DEFolder",
             parameterType="Required",
             direction="Input",
         )
 
-        # Param 1: Which years to export a future highway network for
-        param_export_years = arcpy.Parameter(
-            displayName="Years to export",
-            name="Years_To_Export",
-            datatype="GPString",
+        # Param 1: network year and EMME scenario lookup
+        param_scenario_years = arcpy.Parameter(
+            displayName="Network Years and EMME Scenarios",
+            name="Scenario_Years",
+            datatype="GPValueTable",
             parameterType="Required",
             direction="Input",
         )
-
-        # Returning params (must be in ordered array)
-        params = [
-            param_mhn_gdb_path,
-            param_export_years,
+        param_scenario_years.columns = [
+            ["GPLong", "Network Year"],
+            ["GPLong", "EMME Scenario"],
         ]
 
+        # Param 2: folder for the EMME transit files
+        param_output_folder = arcpy.Parameter(
+            displayName="Transit Output Folder",
+            name="Output_Folder",
+            datatype="DEFolder",
+            parameterType="Required",
+            direction="Input",
+        )
+
+        params = [
+            param_bus_network_folder,
+            param_scenario_years,
+            param_output_folder,
+        ]
         return params
-
-    def isLicensed(self):
-        """Whether or not the tool is licensed to execute."""
-        return True
-
-    def updateParameters(self, parameters):
-        """
-        Modify the values and properties of parameters before
-        internal validation is performed. This method is called whenever
-        a parameter has been changed.
-        """
-        # TODO: Figure out updateParameters method
-        pass
-
-    def updateMessages(self):
-        """
-        Modify the messages created by internal validation for each tool
-        parameter. This method is called after internal validation.
-        (Source: Esri)
-        """
-        # TODO: Figure out updateMessages method
-        pass
 
     def execute(self, parameters, messages):
         """
-        Where the tool actually gets executed.
+        Run the Generate Transit Files tool.
         """
-        # TODO: implement execute method
-        pass
+        bus_network_folder = parameters[0].valueAsText
+        scenario_years = parse_scenario_years(parameters[1])
+        output_folder = parameters[2].valueAsText
+
+        messages.addMessage("Generating EMME transit files...")
+        network = EmmeTransitNetwork(
+            bus_network_folder=bus_network_folder,
+            scenario_years=scenario_years,
+            output_folder=output_folder,
+        )
+        network.generate_transit_files()

@@ -5,27 +5,17 @@ functions and methods.
 
 """
 Author: Aaron Rumph
-Updated: 08/19/2026
+Updated: 09/01/2026
 Notes:
 """
 
 # SECTION: External dependencies
 import os
-from pathlib import Path
 import arcpy
-import shutil
 
 import pandas as pd
 
 pd.set_option("display.max_columns", None)
-
-from pprint import pprint
-
-# for fc -> df conversion
-from arcgis.features import GeoAccessor, GeoSeriesAccessor
-
-# SECTION: Internal dependencies
-from datatypes import _spatial_df_from_table
 
 # SECTION: Constants
 
@@ -44,16 +34,10 @@ removed years_csv_input, removed years_list_raw (should be method specific)
 
 class HighwayNetwork:
     # constructor
-    def __init__(self, mhn_gdb_path):
-
-        # get paths
-        mfhrn_path = Path(__file__).resolve()
-
-        self.in_folder = os.path.join(mfhrn_path, "input")
-        self.mhn_in_folder = os.path.join(self.in_folder, "1_travel")
+    def __init__(self, mhn_gdb_path, output_dir_path):
         self.mhn_gdb_path = mhn_gdb_path
-
-        self.mhn_out_folder = os.path.join(mfhrn_path, "output", "1_travel")
+        self.mhn_in_folder = os.path.dirname(mhn_gdb_path)
+        self.mhn_out_folder = output_dir_path
 
         self.rel_classes = [
             "rel_hwyproj_to_coding",
@@ -81,23 +65,18 @@ class HighwayNetwork:
     # MAIN METHODS --------------------------------------------------------------------------------
 
     # method that creates base hwy gdb in the output folder
-    def create_base_hwy(self, output_dir: str):
+    def create_base_hwy(self):
 
         print("Copying base year...")
 
-        # delete output folder + recreate it
-        out_folder = os.path.dirname(output_dir)
         mhn_in_gdb = self.mhn_gdb_path
         base_year = self.base_year
-
-        if os.path.isdir(out_folder) == True:
-            shutil.rmtree(out_folder)
-
-        os.mkdir(out_folder)
-        os.mkdir(output_dir)
+        os.makedirs(self.mhn_out_folder, exist_ok=True)
 
         # copy GDB
-        mhn_out_gdb = os.path.join(output_dir, f"MHN_{base_year}.gdb")
+        mhn_out_gdb = os.path.join(
+            self.mhn_out_folder, f"MHN_{base_year}.gdb"
+        )
         self.copy_gdb_safe(mhn_in_gdb, mhn_out_gdb)
         self.current_gdb = mhn_out_gdb  # !!! update the HN's current gdb
 
@@ -152,7 +131,7 @@ class HighwayNetwork:
             mhn_out_folder, "base_feature_class_errors.txt"
         )
 
-        error_file = open(base_feature_class_errors, "a")
+        error_file = open(base_feature_class_errors, "w")
 
         dup_fail = 0
 
@@ -771,7 +750,7 @@ class HighwayNetwork:
         print("Highway project coding imported.\n")
 
     # method that checks the project coding table
-    def check_hwyproj_coding_table(self, output_dir: str):
+    def check_hwyproj_coding_table(self):
 
         print("Checking base project table for errors...")
 
@@ -785,11 +764,11 @@ class HighwayNetwork:
         coding_df = self.coding_df
 
         base_project_table_errors = os.path.join(
-            output_dir, "base_project_table_errors.txt"
+            self.mhn_out_folder, "base_project_table_errors.txt"
         )
 
         error_file = open(
-            base_project_table_errors, "a"
+            base_project_table_errors, "w"
         )  # open error file, don't forget to close it!
 
         # create hwylink data structures now to be compared to later
@@ -1191,7 +1170,9 @@ class HighwayNetwork:
 
         # write problematic rows to error file
 
-        xl_path = os.path.join(output_dir, "base_project_table_errors.xlsx")
+        xl_path = os.path.join(
+            self.mhn_out_folder, "base_project_table_errors.xlsx"
+        )
 
         rename_dict = {
             "TIPID": "tipid",
@@ -1289,7 +1270,7 @@ class HighwayNetwork:
         print("Base highway project table checked for errors.\n")
 
     # method that builds future highways
-    def build_future_hwys(self, years: list[int], output_dir: str) -> None:
+    def build_future_hwys(self, years: list[int]) -> None:
         """
         Main method that actually creates GDBs for each of the future export
         years for the `ExportFutureHighwayNetwork` tool.
@@ -1298,12 +1279,22 @@ class HighwayNetwork:
         -------
         self.create_combined_gdb() -> build_year() (FAKE) for year in years
         """
-        self.create_combined_gdb()
+        build_years = sorted(set(years))
+        if any(year < self.base_year for year in build_years):
+            raise ValueError(
+                f"Export years cannot precede the base year {self.base_year}."
+            )
+        if not build_years:
+            raise ValueError("At least one export year is required.")
+
+        self.create_combined_gdb(final_year=max(build_years))
 
         # build the future highways
-        for build_year in years:
+        for build_year in (year for year in build_years if year > self.base_year):
             print(f"Building highway network for {build_year}...")
-            next_gdb = os.path.join(output_dir, f"MHN_{build_year}.gdb")
+            next_gdb = os.path.join(
+                self.mhn_out_folder, f"MHN_{build_year}.gdb"
+            )
             self.copy_gdb_safe(self.current_gdb, next_gdb)
             self.current_gdb = next_gdb
 
@@ -1428,7 +1419,7 @@ class HighwayNetwork:
         removed_projects = os.path.join(mhn_out_folder, "removed_projects.txt")
 
         removed_file = open(
-            removed_projects, "a"
+            removed_projects, "w"
         )  # open file, don't forget to close it!
         removed_file.write("TIPID, COMPLETION YEAR, MCP_ID, RSP_ID, RCP_ID, NOTES\n")
 
@@ -1629,18 +1620,24 @@ class HighwayNetwork:
                 arcpy.management.Delete(rc_path)
 
     # helper method that copies a gdb
-    def copy_gdb_safe(self, input_gdb, output_gdb):
-        while True:
+    def copy_gdb_safe(self, input_gdb, output_gdb, max_attempts=3):
+        last_error = None
+        for attempt in range(1, max_attempts + 1):
             try:
                 if arcpy.Exists(output_gdb):
                     arcpy.management.Delete(output_gdb)
 
                 arcpy.management.Copy(input_gdb, output_gdb)
-            except:
-                print("Copying GDB failed. Trying again...")
-                pass
+            except Exception as error:
+                last_error = error
+                print(
+                    f"Copying GDB failed (attempt {attempt}/{max_attempts})."
+                )
             else:
-                break
+                return
+        raise RuntimeError(
+            f"Unable to copy geodatabase to {output_gdb}"
+        ) from last_error
 
     # helper method to get dictionary of fields -> domains
     def get_field_domain_dict(self, fc):
@@ -1736,17 +1733,18 @@ class HighwayNetwork:
                     icursor.insertRow(row)
 
     # helper method that creates a gdb of all built years
-    def create_combined_gdb(self):
+    def create_combined_gdb(self, final_year):
 
         print("Creating combined gdb...")
 
-        final_year = max(self.years_list)
         mhn_out_folder = self.mhn_out_folder
 
         # create a combined gdb to store + check final output
         mhn_all_name = "MHN_all.gdb"
-        arcpy.management.CreateFileGDB(mhn_out_folder, mhn_all_name)
         mhn_all_gdb = os.path.join(mhn_out_folder, mhn_all_name)
+        if arcpy.Exists(mhn_all_gdb):
+            arcpy.management.Delete(mhn_all_gdb)
+        arcpy.management.CreateFileGDB(mhn_out_folder, mhn_all_name)
 
         # copy relevant project coding
         coding_table = os.path.join(self.current_gdb, "hwyproj_coding")
@@ -2405,20 +2403,3 @@ class HighwayNetwork:
                 ucursor.updateRow(row)
 
         self.base_year = current_year
-
-
-# SECTION: Functions
-
-# SECTION: Main
-if __name__ == "__main__":
-    # NOTE: AR: this is an area I'm just using for quick
-    # print debugging
-    local_mhn_path = r"C:\Users\arumph\MasterHighway\mhn_c26q2.gdb"
-    mhn = HighwayNetwork(mhn_gdb_path=local_mhn_path)
-
-    # print attrs of MHN
-    pprint(vars(mhn))
-
-    df_props = [df for df in vars(mhn).keys() if str(df).endswith("df")]
-    for df in df_props:
-        print(df_props)

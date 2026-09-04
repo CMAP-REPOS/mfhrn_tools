@@ -4,7 +4,7 @@ Module containing functions for working with arcpy parameters
 
 """
 Author: Aaron Rumph
-Updated: 08/19/2026
+Updated: 09/01/2026
 Notes: N/A
 """
 
@@ -28,6 +28,18 @@ def parse_years(parameter: arcpy.Parameter) -> list[int]:
     # cast to int
     parsed_years = [int(year) for year in parsed_years]
     return parsed_years
+
+
+def parse_scenario_years(parameter: arcpy.Parameter) -> dict[int, int]:
+    """
+    Helper function: parses an incoming ArcPy value table containing
+    network years and EMME scenarios.
+    """
+    scenario_years = {
+        int(year): int(scenario) for year, scenario in parameter.values
+    }
+
+    return scenario_years
 
 
 def _debug_params(param: arcpy.Parameter, messages):
