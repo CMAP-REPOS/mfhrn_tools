@@ -56,28 +56,28 @@ class BusNetwork:
                 "where_clause": "STARTHOUR >= 18 OR STARTHOUR < 6",
                 "maxtime": 720,
                 "hwy_tod": 1,
-                "hdwy_mult": 4,
+                # "hdwy_mult": 4,
             },
             2: {
                 "description": "6 AM - 9 AM",  # AM peak
                 "where_clause": "STARTHOUR >= 6 AND STARTHOUR < 9",
                 "maxtime": 180,
                 "hwy_tod": 3,
-                "hdwy_mult": 1,
+                # "hdwy_mult": 1,
             },
             3: {
                 "description": "9 AM - 4 PM",  # midday
                 "where_clause": "STARTHOUR >= 9 AND STARTHOUR < 16",
                 "maxtime": 420,
                 "hwy_tod": 5,
-                "hdwy_mult": 3,
+                # "hdwy_mult": 3,
             },
             4: {
                 "description": "4 PM - 6 PM",  # PM peak
                 "where_clause": "STARTHOUR >= 16 AND STARTHOUR < 18",
                 "maxtime": 120,
                 "hwy_tod": 7,
-                "hdwy_mult": 1,
+                # "hdwy_mult": 1,
             },
         }
 
@@ -854,11 +854,11 @@ class BusNetwork:
 
         bn_out_folder = self.bn_out_folder
 
-        cr_gdb = os.path.join(bn_out_folder, f"collapsed_routes.gdb")
+        cr_gdb = os.path.join(bn_out_folder, "collapsed_routes.gdb")
         scen_gdb = os.path.join(bn_out_folder, f"SCENARIO_{scen}.gdb")
 
         maxtime = self.tod_dict[tod]["maxtime"]
-        hdwy_mult = self.tod_dict[tod]["hdwy_mult"]
+        # hdwy_mult = self.tod_dict[tod]["hdwy_mult"]
 
         which_gtfs = "base"
         if scen > 1:
@@ -1016,7 +1016,7 @@ class BusNetwork:
                     hdwy = row[5]  # uhhh here we go
                     speed = row[6]
 
-                    coded_hdwy = hdwy * hdwy_mult
+                    coded_hdwy = hdwy #* hdwy_mult
                     replaced_hdwy = 0
 
                     if tr_line in replace_dict:
@@ -1047,8 +1047,8 @@ class BusNetwork:
                         [row[0], tr_line, desc, mode, veh_type, final_hdwy, speed, None]
                     )
 
-        arcpy.management.Delete(rep_gtfs_fc)
-        arcpy.management.Delete(rep_future_fc)
+        # arcpy.management.Delete(rep_gtfs_fc)
+        # arcpy.management.Delete(rep_future_fc)
 
         return reroute_dict
 
@@ -1071,7 +1071,7 @@ class BusNetwork:
 
         bn_out_folder = self.bn_out_folder
 
-        cr_gdb = os.path.join(bn_out_folder, f"collapsed_routes.gdb")
+        cr_gdb = os.path.join(bn_out_folder, "collapsed_routes.gdb")
         scen_gdb = os.path.join(bn_out_folder, f"SCENARIO_{scen}.gdb")
 
         which_gtfs = "base"
@@ -1081,12 +1081,12 @@ class BusNetwork:
         # get itins as dicts
         tod_fd = os.path.join(cr_gdb, f"TOD_{tod}")
         itin_gtfs_fc = os.path.join(tod_fd, f"itin_{which_gtfs}_{tod}")
-        itin_future_fc = os.path.join(cr_gdb, f"itin_future_0")
+        itin_future_fc = os.path.join(cr_gdb, "itin_future_0")
 
         error_file.write("\n")
 
         error_file.write(f"Errors in scenario {scen} TOD {tod} transit lines:\n")
-        error_file.write(f"------------------------------------\n")
+        error_file.write("------------------------------------\n")
 
         exclude_fields = ["OBJECTID", "Shape", "Shape_Length"]
         fields = [
@@ -1352,7 +1352,7 @@ class BusNetwork:
 
         return final_itin
 
-    # find nearest node
+    # helper method that finds nearest node
     def find_nearest_node(self, orig_node, available_nodes, zone=False):
 
         node_dict = self.node_dict

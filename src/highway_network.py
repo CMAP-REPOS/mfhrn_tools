@@ -12,7 +12,6 @@ Notes:
 # SECTION: External dependencies
 import os
 import arcpy
-
 import pandas as pd
 
 pd.set_option("display.max_columns", None)
@@ -165,6 +164,7 @@ class HighwayNetwork:
             dup_fail += 1
 
         if dup_fail > 0:
+            error_file.close()
             raise ValueError(
                 "Duplicates in the feature classes were found. Crashing program."
             )
@@ -511,6 +511,7 @@ class HighwayNetwork:
             error_file.write("No links failed the individual row check.\n")
 
         if node_fail != 0 or link_fail != 0:
+            error_file.close()
             raise ValueError(
                 f"There are {node_fail} nodes with issues and {link_fail} links with issues. Crashing program."
             )

@@ -266,7 +266,7 @@ class EmmeHighwayNetwork:
                 tipid = "0"
 
                 if proj != None:
-                    tipid = proj.lstrip("0").replace("-", "")
+                    tipid = str(proj).lstrip("0").replace("-", "")
 
                 l2_file.write(f"{space1}{inode}{space2}{jnode} ")
                 l2_file.write(f"{speed}  {width}  {parklanes}  {cltl}  ")
